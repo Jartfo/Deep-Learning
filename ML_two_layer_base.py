@@ -24,7 +24,7 @@ def sigmoid(x):
     """
 
     ## 코딩시작
-    s = 
+    s = 1/(1+np.exp(-x))
     ## 코딩 끝
 
     return s
@@ -74,10 +74,10 @@ class NeuralNetwork:
         '''
 
         ## 코딩시작
-        W1 =
-        b1 =
-        W2 =
-        b2 =
+        W1 = np.random.randn(nHidden, nInput) * 0.01
+        b1 = np.zeros((nHidden,1))
+        W2 = np.random.randn(nOutput,nHidden) * 0.01
+        b2 = np.zeros((nOutput,1))
         ## 코딩끝
 
         self.parameters.update(W1=W1, b1=b1, W2=W2, b2=b2)
@@ -95,12 +95,12 @@ class NeuralNetwork:
             A2: network output
         '''
         ## 코딩시작 
-        W1, b1, W2, b2 = 
+        W1, b1, W2, b2 = self.parameters.values()
         
-        Z1 =
-        A1 =
-        Z2 =
-        A2 =
+        Z1 = np.dot(W1, X) + b1
+        A1 = np.tanh(Z1)
+        Z2 = np.dot(W2, A1) + b2
+        A2 = sigmoid(Z2)
 
         ## 코딩끝
         
@@ -117,15 +117,15 @@ class NeuralNetwork:
         Return:
         '''
         ## 코딩시작
-        W1, b1, W2, b2 =
-        X, Y, _, A1, _, A2 =
+        W1, b1, W2, b2 = self.parameters.values()
+        X, Y, _, A1, _, A2 = self.cache.values()
 
-        dZ2 =
-        dW2 =
-        db2 =
-        dZ1 =
-        dW1 =
-        db1 =
+        dZ2 = A2 - Y
+        dW2 = (1/self.nSample) * np.dot(dZ2, A1.T)
+        db2 = (1/self.nSample) * np.sum(dZ2, axis=1, keepdims=True)
+        dZ1 = np.multiply(np.dot(W2.T, dZ2), (1-np.power(A1,2)))
+        dW1 = (1/self.nSample) * np.dot(dZ1, X.T)
+        db1 = (1/self.nSample) * np.sum(dZ1, axis=1, keepdims=True)
         ## 코딩끝
 
         self.grads.update(dW1=dW1, db1= db1, dW2=dW2, db2=db2)
@@ -143,13 +143,13 @@ class NeuralNetwork:
         '''
 
         ## 코딩시작
-        W1,b1,W2,b2 =
-        dW1, db1, dW2, db2 =
+        W1,b1,W2,b2 = self.parameters.values()
+        dW1, db1, dW2, db2 = self.grads.values()
 
-        W1 = 
-        b1 = 
-        W2 = 
-        b2 = 
+        W1 = W1 - learning_rate * dW1
+        b1 = b1 - learning_rate * db1
+        W2 = W2 - learning_rate * dW2
+        b2 = b2 - learning_rate * db2
         ## 코딩 끝
         
         self.parameters.update(W1=W1, b1= b1, W2=W2, b2=b2)
@@ -169,8 +169,8 @@ class NeuralNetwork:
         self.cache.update(Y=Y)
         
         ## 코딩 시작
-        logprobs =
-        cost = 
+        logprobs = -(np.multiply(np.log(A2), Y) + np.multiply((1-Y),np.log(1-A2)))
+        cost = 1/self.nSample * np.sum(logprobs)
         ## 코딩끝
         
         cost = float(np.squeeze(cost))  
@@ -186,8 +186,8 @@ class NeuralNetwork:
         Return:
         '''
         ## 코딩 시작
-        A2 = 
-        predictions = 
+        A2 = self.forward(X)
+        predictions = (A2 > 0.5)
         ## 코딩 끝
         return predictions
 
@@ -202,21 +202,26 @@ def main():
     # plt.show()
     
     ## 코딩시작
-    nInput = 
-    nHidden = 
-    nOutput = 
-    nSample = 
+    nInput = X_train.shape[0]
+    nHidden = 4
+    nOutput = Y_train.shape[0]
+    nSample = X_train.shape[1]
     ## 코딩시작
 
     simpleNN = NeuralNetwork(nInput, nHidden, nOutput, nSample)
 
+
+    ### prediction
+    predictions = simpleNN.predict(X_train)
+    print ('Accuracy: %d' % float((np.dot(Y_train,predictions.T) + np.dot(1-Y_train,1-predictions.T))/float(Y_train.size)*100) + '%')
+    decision_boundary(lambda x: simpleNN.predict(x.T), X_train, Y_train)
     ### training
     ## 코딩 시작
     for i in range(0, num_iterations):
-        A2 =                ##forward propagation 하기.
-        cost =              ## cost function을 이용해 cost 구하기.
-        pass                ## 위에 만든 함수를 이용하여 backpropagation 진행
-        pass                ## 위에 만든 함수를 이용하여 network의 weight update하기.
+        A2 = simpleNN.forward(X_train)       ##forward propagation 하기.
+        cost = simpleNN.compute_cost(A2, Y_train)             ## cost function을 이용해 cost 구하기.
+        simpleNN.backward()                ## 위에 만든 함수를 이용하여 backpropagation 진행
+        simpleNN.update_params()                ## 위에 만든 함수를 이용하여 network의 weight update하기.
         if i % 1000 ==0:
             print("Cost after iteration %i: %f" %(i,cost))
     ## 코딩끝
@@ -224,11 +229,11 @@ def main():
     ### prediction
     predictions = simpleNN.predict(X_train)
     print ('Accuracy: %d' % float((np.dot(Y_train,predictions.T) + np.dot(1-Y_train,1-predictions.T))/float(Y_train.size)*100) + '%')
-    # decision_boundary(lambda x: simpleNN.predict(x.T), X_train, Y_train)
+    decision_boundary(lambda x: simpleNN.predict(x.T), X_train, Y_train)
 
     predictions = simpleNN.predict(X_test)
     print ('Accuracy: %d' % float((np.dot(Y_test,predictions.T) + np.dot(1-Y_test,1-predictions.T))/float(Y_test.size)*100) + '%')
-    # decision_boundary(lambda x: simpleNN.predict(x.T), X_test, Y_test)
+    decision_boundary(lambda x: simpleNN.predict(x.T), X_test, Y_test)
 
 if __name__=='__main__':
     main()
