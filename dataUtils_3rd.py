@@ -67,13 +67,13 @@ class Dataloader():
     
 
 if __name__=='__main__':
-    # root='dataset/train'
-    root = 'testing/train'
+    root='dataset/train'
+    #root = 'testing/train'
 
     ld = Dataloader(root, minibatch=3)
     img = ld.getImage(1)
-    # for i, (imgs, targets) in enumerate(ld):
-    #     # print(imgs)
-    #     print(targets)
-    #     pass
+    for i, (imgs, targets) in enumerate(ld):
+        # print(imgs)
+        print(targets)
+        pass
 
