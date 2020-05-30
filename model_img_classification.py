@@ -25,7 +25,7 @@ def relu(x):
     Return:
         s : relu(x)
     """
-    s = np.maximum(0,x)
+    s = np.maximum(0, x)
     
     return s
 

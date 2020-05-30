@@ -50,6 +50,7 @@ def main():
     if resume:
         simpleNN.parameters = loadParams(resume)
 
+    # epoch may be start with 1
     for epoch in range (epochs):
         training(dataloader, simpleNN, learning_rate, epoch)
         
@@ -64,6 +65,9 @@ def validation(dataloader, simpleNN):
     for i, (images, targets) in enumerate(dataloader):
         # do validation
         predictions = simpleNN.predict(images)
+        A3 = simpleNN.forward(images)
+        cost = simpleNN.compute_cost(A3, targets)
+        print("validation cost: %f" %(cost))
         print('Accuracy: %d' % float((np.dot(targets, predictions.T) + np.dot(1 - targets, 1 - predictions.T)) / float(
             targets.size) * 100) + '%')
 
