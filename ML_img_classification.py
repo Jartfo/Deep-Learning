@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import dataUtils_3rd
-import model_img_classification
+import dataUtils_3rd as dataUtils
+import model_img_classification as model
 
 import json
 from json import JSONEncoder
@@ -30,11 +30,12 @@ def loadParams(path):
 
 
 def main():
-    epochs = 
-    learning_rate =
-    batch_size =
+    epochs = 50
+    learning_rate = 0.1
+    batch_size = 64
     resume = False # path of model weights
-    model_weights_path = 'weights_2020125001.json'
+    model_weights_path = 'weights_for_apple_banana.json'
+    #model_weights_path = 'weights_2020125001.json'
 
     ### dataset loading 하기.
     dataPath = 'dataset/train'
@@ -42,8 +43,8 @@ def main():
     dataloader = dataUtils.Dataloader(dataPath, minibatch=batch_size)
     val_dataloader = dataUtils.Dataloader(valPath)
     
-    nSample = 
-    layerDims = 
+    nSample = batch_size
+    layerDims = [7500, 10, 7, 1]
 
     simpleNN = model.NeuralNetwork(layerDims, nSample)
     if resume:
@@ -62,12 +63,22 @@ def main():
 def validation(dataloader, simpleNN):
     for i, (images, targets) in enumerate(dataloader):
         # do validation
+        predictions = simpleNN.predict(images)
+        print('Accuracy: %d' % float((np.dot(targets, predictions.T) + np.dot(1 - targets, 1 - predictions.T)) / float(
+            targets.size) * 100) + '%')
+
 
 def training(dataloader, simpleNN, learning_rate, epoch):
 
     for i, (images, targets) in enumerate(dataloader):
         # do training
-
+        A3 = simpleNN.forward(images)
+        cost = simpleNN.compute_cost(A3, targets)
+        simpleNN.backward()
+        simpleNN.update_params(learning_rate=learning_rate)
+        # 64 means batch size
+        if (i * epoch * 64) % 100 == 0:
+            print("Cost after iteration %i: %f"%((i*epoch*64),cost))
 
 
     return simpleNN

@@ -162,7 +162,7 @@ class NeuralNetwork:
         W1, b1, W2, b2, W3, b3 = self.parameters.values()
         dW1, db1, dW2, db2, dW3, db3 = self.grads.values()
 
-        for k in range(3):
+        for k in range(1, len(self.nSample)):
             self.parameters["W" + str(k+1)] = self.parameters["W" + str(k+1)] - learning_rate * self.grads["dW" + str(k+1)]
             self.parameters["b" + str(k+1)] = self.parameters["b" + str(k+1)] - learning_rate * self.grads["db" + str(k+1)]
 
